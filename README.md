@@ -26,7 +26,7 @@ ERP implementations fail at an alarming rate, and configuration errors are a lea
 - Duplicate accounts, missing fields, and invalid data discovered only after deployment
 - No validation tools exist before go-live
 
-**Real-world example:** A manufacturing company went live with duplicate account number 4000. Three months of revenue posted to the wrong account. Remediation cost: **E125,000**.
+**Example:** A manufacturing company went live with duplicate account number 4000. Three months of revenue posted to the wrong account. Remediation cost: **E125,000**.
 
 ---
 
@@ -758,4 +758,5 @@ MIT License - Free to use, modify, and distribute.
 ```
 
 ---
+
 
