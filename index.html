@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConfigMaster Pro - ERP Configuration & Testing Tool</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: 3px solid #fbbf24;
+        }
+        
+        .tab-inactive {
+            background: rgba(255, 255, 255, 0.5);
+            color: #4b5563;
+        }
+        
+        .tab-inactive:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .input-field {
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .validation-error {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2;
+        }
+        
+        .validation-success {
+            border-color: #10b981 !important;
+            background-color: #f0fdf4;
+        }
+        
+        .alert-error {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+        
+        .alert-success {
+            background-color: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+        
+        .alert-warning {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .table-row:hover {
+            background-color: #f9fafb;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .loader {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4">
+    
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <div class="glass-effect rounded-xl p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                        <i class="fas fa-cogs text-purple-600"></i>
+                        ConfigMaster Pro
+                    </h1>
+                    <p class="text-gray-600">ERP Configuration & Testing Tool - Business Central Eswatini</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500">Last Saved</div>
+                    <div id="lastSaved" class="text-lg font-semibold text-gray-700">Never</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-500 text-sm mb-1">Total Accounts</div>
+                        <div id="statAccounts" class="text-2xl font-bold text-gray-800">0</div>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-list text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-500 text-sm mb-1">Customers</div>
+                        <div id="statCustomers" class="text-2xl font-bold text-gray-800">0</div>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-users text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-500 text-sm mb-1">Items</div>
+                        <div id="statItems" class="text-2xl font-bold text-gray-800">0</div>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-box text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-500 text-sm mb-1">Validation Issues</div>
+                        <div id="statIssues" class="text-2xl font-bold text-red-600">0</div>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="glass-effect rounded-xl overflow-hidden">
+            
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200">
+                <button onclick="switchTab('accounts')" id="tabAccounts" class="flex-1 py-4 px-6 font-semibold tab-active transition-all">
+                    <i class="fas fa-list mr-2"></i> Chart of Accounts
+                </button>
+                <button onclick="switchTab('customers')" id="tabCustomers" class="flex-1 py-4 px-6 font-semibold tab-inactive transition-all">
+                    <i class="fas fa-users mr-2"></i> Customers/Vendors
+                </button>
+                <button onclick="switchTab('items')" id="tabItems" class="flex-1 py-4 px-6 font-semibold tab-inactive transition-all">
+                    <i class="fas fa-box mr-2"></i> Items
+                </button>
+                <button onclick="switchTab('templates')" id="tabTemplates" class="flex-1 py-4 px-6 font-semibold tab-inactive transition-all">
+                    <i class="fas fa-file-alt mr-2"></i> Templates
+                </button>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="p-6">
+                
+                <!-- Chart of Accounts Tab -->
+                <div id="contentAccounts" class="tab-content">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Chart of Accounts Configuration</h2>
+                    <p class="text-gray-600 mb-6">Configure your general ledger accounts structure</p>
+                    
+                    <!-- Will be populated in Phase 2 -->
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                        <p>Loading Chart of Accounts module...</p>
+                    </div>
+                </div>
+                
+                <!-- Customers/Vendors Tab -->
+                <div id="contentCustomers" class="tab-content hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Customer & Vendor Setup</h2>
+                    <p class="text-gray-600 mb-6">Manage business partners configuration</p>
+                    
+                    <!-- Will be populated in Phase 3 -->
+                    <div class="text-center py-12 text-gray-500">
+                        <p>Customer/Vendor module coming next...</p>
+                    </div>
+                </div>
+                
+                <!-- Items Tab -->
+                <div id="contentItems" class="tab-content hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Item Master Data</h2>
+                    <p class="text-gray-600 mb-6">Configure product and service items</p>
+                    
+                    <!-- Will be populated later -->
+                    <div class="text-center py-12 text-gray-500">
+                        <p>Items module coming soon...</p>
+                    </div>
+                </div>
+                
+                <!-- Templates Tab -->
+                <div id="contentTemplates" class="tab-content hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Configuration Templates</h2>
+                    <p class="text-gray-600 mb-6">Quick start with pre-built templates</p>
+                    
+                    <!-- Will be populated in Phase 5 -->
+                    <div class="text-center py-12 text-gray-500">
+                        <p>Templates module coming soon...</p>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-4 mt-6">
+            <button onclick="validateAll()" class="btn-primary px-6 py-3 rounded-lg font-semibold flex items-center gap-2">
+                <i class="fas fa-check-circle"></i> Validate Configuration
+            </button>
+            <button onclick="generateTestData()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center gap-2">
+                <i class="fas fa-database"></i> Generate Test Data
+            </button>
+            <button onclick="exportToExcel()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center gap-2">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </button>
+            <button onclick="exportToPDF()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 flex items-center gap-2">
+                <i class="fas fa-file-pdf"></i> Export Documentation
+            </button>
+        </div>
+        
+    </div>
+    
+    <!-- Load JavaScript modules -->
+    <script src="app.js"></script>
+    
+</body>
+</html>
